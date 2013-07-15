@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"
+  xmlns:dc="http://purl.org/dc/elements/1.1/"
+  xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+  xml:lang="{{tpl:BlogLanguage}}">
+  
+  <title type="html">{{tpl:BlogName encode_xml="1"}}{{tpl:SysFeedSubtitle encode_xml="1"}}</title>
+  <subtitle type="html">{{tpl:BlogDescription encode_xml="1"}}</subtitle>
+  <link href="{{tpl:SysSelfURI}}" rel="self" type="application/atom+xml"/>
+  <link href="{{tpl:BlogURL}}" rel="alternate" type="text/html"
+  title="{{tpl:BlogDescription encode_xml="1"}}"/>
+  <updated>{{tpl:BlogUpdateDate iso8601="1"}}</updated>
+  <author>
+    <name>{{tpl:BlogEditor encode_xml="1"}}</name>
+  </author>
+  <id>{{tpl:BlogFeedID}}</id>
+  <generator uri="http://www.dotclear.org/">Dotclear</generator>
+  
+  <tpl:FostrakMedias>
+  
+  <entry>
+    <title>{{tpl:FostrakMediaTitle encode_xml="1"}}</title>
+    <link href="{{tpl:FostrakMediaURL}}" rel="alternate" type="text/html"
+    title="{{tpl:FostrakMediaTitle encode_xml="1"}}" />
+    <id>{{tpl:FostrakMediaFeedID}}</id>
+    <published>{{tpl:FostrakMediaDate iso8601="1"}}</published>
+    <author><name>{{tpl:FostrakMediaAuthor encode_xml="1"}}</name></author>
+    
+    <content type="html">{{tpl:FostrakMediaTitle encode_xml="1"}}</content>
+    
+    <link rel="enclosure" href="{{tpl:FostrakMediaContentURL}}"
+      length="{{tpl:FostrakMediaSize full="1"}}" type="{{tpl:FostrakMediaMimeType}}" />
+    
+    <tpl:EntryIf2 comments_active="1">
+      <wfw:comment>{{tpl:EntryURL}}#comment-form</wfw:comment>
+      <wfw:commentRss>{{tpl:BlogFeedURL type="atom"}}/comments/{{tpl:EntryID}}</wfw:commentRss>
+    </tpl:EntryIf2>
+  </entry>
+  </tpl:FostrakMedias>
+
+</feed>

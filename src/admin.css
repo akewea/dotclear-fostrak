@@ -1,0 +1,13 @@
+@CHARSET "ISO-8859-1";
+
+#fostrak-footer{
+	clear: both;
+	color: #93928A;
+	padding-top: 10px;
+	border-top: 1px solid #DEDCD1;
+	text-align: right;
+}
+
+#fostrak-footer  .fostrak-logo {
+	padding-left: 10px;
+}

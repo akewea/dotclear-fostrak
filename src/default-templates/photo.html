@@ -1,0 +1,90 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="{{tpl:BlogLanguage}}" lang="{{tpl:BlogLanguage}}">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="ROBOTS" content="{{tpl:BlogMetaRobots}}" />
+  
+  <title>{{tpl:lang Photo Stream}} - {{tpl:BlogName encode_html="1"}}</title>
+  <meta name="description" lang="{{tpl:FostrakMediaLang}}" content="{{tpl:FostrakMediaTitle full="1" encode_html="1" remove_html="1" cut_string="180"}}" />
+  <meta name="copyright" content="{{tpl:BlogCopyrightNotice encode_html="1"}}" />
+  <meta name="author" content="{{tpl:FostrakMediaAuthor encode_html="1"}}" />
+  <meta name="date" scheme="W3CDTF" content="{{tpl:FostrakMediaDate iso8601="1"}}" />
+  
+  <link rel="schema.dc" href="http://purl.org/dc/elements/1.1/" />
+  <meta name="dc.title" content="{{tpl:FostrakMediaTitle encode_html="1"}}" />
+  <meta name="dc.description" lang="{{tpl:FostrakMediaLang}}" content="{{tpl:FostrakMediaTitle full="1" encode_html="1" remove_html="1" cut_string="180"}}" />
+  <meta name="dc.creator" content="{{tpl:FostrakMediaAuthor encode_html="1"}}" />
+  <meta name="dc.language" content="{{tpl:FostrakMediaLang}}" />
+  <meta name="dc.publisher" content="{{tpl:BlogEditor encode_html="1"}}" />
+  <meta name="dc.rights" content="{{tpl:BlogCopyrightNotice encode_html="1"}}" />
+  <meta name="dc.date" scheme="W3CDTF" content="{{tpl:FostrakMediaDate iso8601="1"}}" />
+  <meta name="dc.type" content="text" />
+  <meta name="dc.format" content="text/html" />
+  
+  <link rel="top" href="{{tpl:BlogURL}}" title="{{tpl:lang Home}}" />
+  <link rel="contents" href="{{tpl:BlogArchiveURL}}" title="{{tpl:lang Archives}}" />
+  
+  <tpl:FostrakNext><link rel="next" href="{{tpl:FostrakMediaURL}}"
+  title="{{tpl:FostrakMediaTitle encode_html="1"}}" /></tpl:FostrakNext>
+  
+  <tpl:FostrakPrevious><link rel="prev" href="{{tpl:FostrakMediaURL}}"
+  title="{{tpl:FostrakMediaTitle encode_html="1"}}" /></tpl:FostrakPrevious>
+  
+  <link rel="alternate" type="application/atom+xml" title="Atom 1.0" href="{{tpl:FostrakMediaFeedURL type="atom"}}" />
+  
+  {{tpl:include src="_head.html"}}
+  
+</head>
+
+<body class="dc-fostrak">
+<div id="page">
+
+{{tpl:include src="_top.html"}}
+
+<div id="wrapper">
+
+<div id="main">
+  <div id="content">
+  
+  <p id="navlinks">
+  <tpl:FostrakPrevious><a href="{{tpl:FostrakMediaURL}}"
+  title="{{tpl:FostrakMediaTitle encode_html="1"}}" class="prev">&#171; {{tpl:FostrakMediaTitle encode_html="1"
+  cut_string="50"}}</a></tpl:FostrakPrevious>
+  <tpl:FostrakNext> <span>-</span> <a href="{{tpl:FostrakMediaURL}}"
+  title="{{tpl:FostrakMediaTitle encode_html="1"}}" class="next">{{tpl:FostrakMediaTitle encode_html="1"
+  cut_string="50"}} &#187;</a></tpl:FostrakNext>
+  </p>
+  
+  <div id="p{{tpl:FostrakMediaID}}" class="post">
+    <h2 class="post-title">{{tpl:FostrakMediaTitle encode_html="1"}}</h2>
+    
+    <p class="post-info">{{tpl:lang By}} {{tpl:FostrakMediaAuthorLink}}
+    {{tpl:lang on}} {{tpl:FostrakMediaDate}}, {{tpl:FostrakMediaTime}}
+    - <a href="{{tpl:FostrakMediaURL}}">{{tpl:lang Permalink}}</a>
+    </p>
+       
+    <div class="post-content"><img src="{{tpl:FostrakMediaContentURL}}" 
+    alt="{{tpl:FostrakMediaTitle}}" title="{{tpl:FostrakMediaTitle}}"/></div>
+    
+  </div>  
+  
+  </div>
+</div> <!-- End #main -->
+
+<div id="sidebar">
+  <div id="blognav">
+    {{tpl:Widgets type="nav"}}
+  </div> <!-- End #blognav -->
+  
+  <div id="blogextra">
+    {{tpl:Widgets type="extra"}}
+  </div> <!-- End #blogextra -->
+</div>
+
+</div> <!-- End #wrapper -->
+
+{{tpl:include src="_footer.html"}}
+</div> <!-- End #page -->
+</body>
+</html>
