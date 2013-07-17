@@ -92,7 +92,7 @@ class fostrakAdminBehaviors
 	 * 
 	 * @param $file
 	 */
-	public function adminMediaItemForm($file)
+	public static function adminMediaItemForm($file)
 	{
 		global $core;
 		global $fostrak;
