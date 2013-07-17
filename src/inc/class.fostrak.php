@@ -16,6 +16,9 @@ class fostrak extends dcMedia
 		$this->prefix = $core->prefix;
 		$this->core =& $core;
 		$this->media = $core->media;
+		if(!$this->media) {
+			$this->media = new dcMedia($core);
+		}
 	}
 
 	public function getPublicURL($escaped=true){
@@ -30,35 +33,36 @@ class fostrak extends dcMedia
 		
 		if ($count_only)
 		{
-			$strReq = 'SELECT count(S.media_id) ';
+			$strReq = 'SELECT count(M.media_id) ';
 		}
 		else
 		{
 			$strReq =
-			'SELECT S.media_id, S.media_dt, '.
+			'SELECT M.media_id, P.post_dt, P.post_excerpt, P.post_id, M.media_dt, '.
 			'media_title, media_file, media_path, media_private, M.user_id, '.
 			'media_creadt, media_upddt, media_meta, '.
 			'U.user_name, U.user_firstname, U.user_displayname, U.user_url ';
 		}
 
 		$strReq .=
-		'FROM '.$this->prefix.'fostrak_stream S '.
-		'INNER JOIN '.$this->prefix.'media M ON M.media_id = S.media_id '.
+		'FROM '.$this->prefix.'post P '.
+		'INNER JOIN '.$this->prefix.'post_media PM ON PM.post_id = P.post_id and link_type = \'fostrak\' '.
+		'INNER JOIN '.$this->prefix.'media M ON M.media_id = PM.media_id '.
 		'INNER JOIN '.$this->prefix.'user U ON U.user_id = M.user_id ';
 
 		if (!empty($params['from'])) {
 			$strReq .= $params['from'].' ';
 		}
-
+		
 		$strReq .=
-		"WHERE M.media_path = '".$this->core->blog->settings->system->public_path."' ";
+		"WHERE M.media_path = '".$this->core->blog->settings->system->public_path."' and P.post_type = 'fostrak'";
 
 		if (!$this->core->auth->check('contentadmin',$this->core->blog->id)) {
 			$strReq .= 'AND media_private <> 1 ';
 		}
 
 		if (!empty($params['media_id'])) {
-			$strReq .= 'AND S.media_id = '.(integer) $params['media_id'].' ';
+			$strReq .= 'AND M.media_id = '.(integer) $params['media_id'].' ';
 		}
 
 		if (!empty($params['user_id'])) {
@@ -78,7 +82,7 @@ class fostrak extends dcMedia
 			if (!empty($params['order'])) {
 				$strReq .= 'ORDER BY '.$this->con->escape($params['order']).' ';
 			} else {
-				$strReq .= 'ORDER BY S.media_dt DESC ';
+				$strReq .= 'ORDER BY P.post_dt DESC ';
 			}
 		}
 
@@ -92,69 +96,95 @@ class fostrak extends dcMedia
 		while ($rs->fetch())
 		{
 			$tmp = $this->fileRecord($rs);
-			$tmp->media_dtdb = $rs->media_dt;
+			$tmp->media_dtdb = $rs->post_dt;
 			$tmp->user_url = $rs->user_url;
+			$tmp->post_excerpt = $rs->post_excerpt;
+			$tmp->post_id = $rs->post_id;
 			if($tmp != null){
 				$f_res[] = new ArrayObject($tmp);
 			}
 		}
-		
-		//print_r($f_res[0]);
+
 		$f_res = staticRecord::newFromArray($f_res);
 		$f_res->core = $this->core;
 		$f_res->extend('fostrakExtMedia');
-		
-		//print_r($f_res);
 
 		return $f_res;
 	}
-
-	public function addOrUpdStreamMedia($id,$cur)
+	
+	public function addOrUpdPost($media_id,$cur)
 	{
-		$id = (integer) $id;
-
+		$id = (integer) $media_id;
+	
 		if (empty($id)) {
 			throw new Exception(__('No such media ID'));
 		}
-
+	
 		$offset = dt::getTimeOffset($this->core->blog->settings->system->blog_timezone);
-		$cur->media_dt = date('Y-m-d H:i:s',time() + $offset);
-
-		$rs = $this->getStreamMedias(array('media_id' => $id));
-
-		if ($rs->isEmpty()) {
-			$cur->media_id = (integer) $id;
-			$this->getStreamMediaCursor($cur);
-			$cur->insert();
-		}else{
-			$this->getStreamMediaCursor($cur);
-			$cur->update('WHERE media_id = '.$id.' ');
+		$cur->post_dt = date('Y-m-d H:i:s',time() + $offset);
+	
+		$rs = $this->getPost($media_id);
+	
+		if ($rs && !$rs->isEmpty()) {
+			$post_id = $rs->post_id;
+			
+			$cur->post_title =  $rs->post_title;
+			$cur->post_content =  $rs->post_content;
+				
+			$this->core->blog->updPost($post_id, $cur);
+		}else{		
+			$media = $this->media->getFile($media_id);
+			
+			$cur->post_title = $media->media_title;
+			$cur->post_content =  $media->media_title;
+			$cur->post_url = $media->relname;
+			$cur->post_type = 'fostrak';
+			$cur->post_status = 1;
+			$cur->post_open_comment = $this->core->blog->settings->system->allow_comments;
+			$cur->user_id = $this->core->auth->userID();
+			
+			$post_id = $this->core->blog->addPost($cur);			
+			$this->core->media->postmedia->addPostMedia($post_id,$id,'fostrak');
 		}
 	}
+	
+	public function getPost($media_id){
+		
+		$rs_postmedia = $this->core->media->postmedia->getPostMedia(array(
+				'media_id' => $media_id,
+				'link_type' => 'fostrak',
+				'from' => ' INNER JOIN '.$this->prefix."post P ON P.post_id = PM.post_id and P.post_type = 'fostrak' "
+		));
+	
+		if(!$rs_postmedia->isEmpty()){
+			$rs = $this->core->blog->getPosts(array(
+					'post_id' => $rs_postmedia->post_id,
+					'post_type' => 'fostrak'
+			));
+	
+			if(!$rs->isEmpty()){
+				return $rs;
+			}
+		}
+	
+		return null;
+	}
 
-	public function delStreamMedia($id)
+	public function delStreamMedia($media_id)
 	{
 		/*if (!$this->core->auth->check('delete,contentadmin',$this->id)) {
 			throw new Exception(__('You are not allowed to delete comments'));
 			}*/
 
-		$id = (integer) $id;
+		$media_id = (integer) $media_id;
 
-		if (empty($id)) {
+		if (empty($media_id)) {
 			throw new Exception(__('No such stream media ID'));
 		}
+		
+		$post = $this->getPost($media_id);
 
-		$strReq = 'DELETE FROM '.$this->prefix.'fostrak_stream '.
-				'WHERE media_id = '.$id.' ';
-
-		$this->con->execute($strReq);
-	}
-
-	private function getStreamMediaCursor($cur)
-	{
-		if ($cur->media_dt !== null && $cur->media_dt == '') {
-			throw new Exception(__('Empty publishing date'));
-		}
+		$this->core->blog->delPost($post->post_id);
 	}
 
 	public function getNextMedia($media,$dir)
@@ -172,11 +202,11 @@ class fostrak extends dcMedia
 		}
 
 		$params['limit'] = 1;
-		$params['order'] = 'S.media_dt '.$order.', M.media_id '.$order;
+		$params['order'] = 'P.post_dt '.$order.', M.media_id '.$order;
 		$params['sql'] =
 		'AND ( '.
-		"	(S.media_dt = '".$this->con->escape($dt)."' AND M.media_id ".$sign." ".$media_id.") ".
-		"	OR S.media_dt ".$sign." '".$this->con->escape($dt)."' ".
+		"	(P.post_dt = '".$this->con->escape($dt)."' AND M.media_id ".$sign." ".$media_id.") ".
+		"	OR P.post_dt ".$sign." '".$this->con->escape($dt)."' ".
 		') ';
 
 		$rs = $this->getStreamMedias($params);

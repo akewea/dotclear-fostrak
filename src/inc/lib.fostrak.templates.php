@@ -28,6 +28,12 @@ class fostrakTemplates
 		return '<?php echo '.sprintf($f,'$_ctx->fostrak->getContentURL("'.$size.'")').'; ?>';
 	}
 
+	public static function MediaDescription($attr)
+	{
+		$f = $GLOBALS['core']->tpl->getFilters($attr);
+		return '<?php echo '.sprintf($f,'$_ctx->fostrak->post_excerpt').'; ?>';
+	}
+
 	public static function MediaTitle($attr)
 	{
 		$f = $GLOBALS['core']->tpl->getFilters($attr);
@@ -153,7 +159,7 @@ class fostrakTemplates
 
 		if (isset($attr['age'])) {
 			$age = $this->getAge($attr);
-			$p .= !empty($age) ? "@\$params['sql'] .= ' AND S.media_dt > \'".$age."\'';\n" : '';
+			$p .= !empty($age) ? "@\$params['sql'] .= ' AND P.post_dt > \'".$age."\'';\n" : '';
 		}
 
 		$res = "<?php\n";

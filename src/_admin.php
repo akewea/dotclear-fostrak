@@ -36,17 +36,16 @@ if(!$popup && (!empty($_POST['fostrak_publish']) || !empty($_POST['fostrak_remov
 
 	$page_url = 'media_item.php';
 	$id = !empty($_REQUEST['id']) ? (integer) $_REQUEST['id'] : '';
+	$core->media = new dcMedia($core);
 
 	if(!empty($_POST['fostrak_publish']) && !empty($id)){
 		try {
+			
+			$cur = $core->con->openCursor($core->prefix.'post');
+			$cur->post_excerpt = $_POST['fostrak_post_content'];
 				
-			$cur = $core->con->openCursor($core->prefix.'fostrak_stream');
-				
-			$offset = dt::getTimeOffset($core->blog->settings->system->blog_timezone);
-			$cur->media_dt = date('Y-m-d H:i:s',time() + $offset);
-				
-			$fostrak->addOrUpdStreamMedia($id, $cur);
-				
+			$fostrak->addOrUpdPost($id, $cur);
+			
 			return http::redirect($page_url.'?id='.$id.'#fostrak');
 		} catch (Exception $e) {
 			$core->error->add($e->getMessage());
@@ -105,16 +104,35 @@ class fostrakAdminBehaviors
 		$page_url = 'media_item.php';
 		$id = $file->media_id;
 
-		$rs = $fostrak->getStreamMedias(array('media_id' => $id));
+		//$core->postmedia = new dcPostMedia($core);
+		
+		//$rs = $fostrak->getStreamMedias(array('media_id' => $id));
+		
+		$content = isset($_POST['fostrak_post_content']) ? $_POST['fostrak_post_content'] : '';
+		$ispublished = false;
+		$date_published = null;
+		
+		$post = $fostrak->getPost($id);
+		if($post){
+			$content = $post->post_excerpt;
+			$ispublished = true;
+			$date_published = $post->post_dt;
+		}
 
 		echo
 		'<form class="clear" action="'.html::escapeURL($page_url).'" method="post" enctype="multipart/form-data">'.
 		'<fieldset id="fostrak"><legend>'.__('Fostrak Photo stream').'</legend>';
+		
+		echo 
+		'<p class="area"><label class="required" '.
+		'for="fostrak_post_content">'.__('Description:').'</label> '.
+		form::textarea('fostrak_post_content',50,2,html::escapeHTML($content)).
+		'</p>';
 
-		if(!$rs->isEmpty()){
+		if($ispublished){
 			echo
 			'<p><img src="images/check-on.png" /> '.
-			__('Media published on').' '.dt::dt2str(__('%Y-%m-%d %H:%M'),$rs->media_dtdb).'</p>'.
+			__('Media published on').' '.dt::dt2str(__('%Y-%m-%d %H:%M'),$date_published).'</p>'.
 			'<p><input type="submit" name="fostrak_publish" value="'.__('Republish').'" />'.
 			'<input type="submit" name="fostrak_remove" value="'.__('Remove').'" />';
 		}else{
