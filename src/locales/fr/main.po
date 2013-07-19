@@ -1,0 +1,32 @@
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "Enable Fostrak"
+msgstr "Activer Fostrak"
+
+msgid "Fostrak base URL"
+msgstr "URL de publication des photos"
+
+msgid "View on site"
+msgstr "Voir sur le site"
+
+msgid "Media Stream"
+msgstr "Photos publiées"
+
+msgid "Fostrak Photo stream"
+msgstr "Publier cette photo avec Fostrak"
+
+msgid "Media published on"
+msgstr "Photo publiée le"
+
+msgid "Republish"
+msgstr "Publier à nouveau"
+
+msgid "Remove"
+msgstr "Retirer"
+
+msgid "Photo has been successfully published on Fostrak."
+msgstr "Photo publiée sur Fostrak avec succès."
+
+msgid "Photo has been successfully unpublished from Fostrak."
+msgstr "Photo retirée de Fostrak avec succès."
