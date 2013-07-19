@@ -21,6 +21,8 @@ class fostratAdminMediaList extends adminGenericList
 			'<th colspan="2"></th>'.
 			'<th>'.__('Title').'</th>'.
 			'<th>'.__('Published on').'</th>'.
+			'<th>'.__('Author').'</th>'.
+			'<th>'.__('Comments').'</th>'.
 			'</tr>%s</table>';
 			
 			if ($enclose_block) {
@@ -59,6 +61,8 @@ class fostratAdminMediaList extends adminGenericList
 		'<p><a href="'.$fostrak->getPublicUrl().$this->rs->relname.'" target="blank">'.__('View on site').'</a></p>'.
 		'</td>'.
 		'<td class="nowrap">'.dt::dt2str(__('%Y-%m-%d %H:%M'),$this->rs->media_dtdb).'</td>'.
+		'<td class="nowrap">'.html::escapeHTML($this->rs->user_id).'</td>'.
+		'<td class="nowrap">'.$this->rs->nb_comment.'</td>'.
 		'</tr>';
 		
 		return $res;

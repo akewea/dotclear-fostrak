@@ -46,7 +46,7 @@ if(!$popup && (!empty($_POST['fostrak_publish']) || !empty($_POST['fostrak_remov
 				
 			$fostrak->addOrUpdPost($id, $cur);
 			
-			return http::redirect($page_url.'?id='.$id.'#fostrak');
+			return http::redirect($page_url.'?id='.$id.'&fostrakpublishok=1#fostrak');
 		} catch (Exception $e) {
 			$core->error->add($e->getMessage());
 			$err = true;
@@ -56,7 +56,7 @@ if(!$popup && (!empty($_POST['fostrak_publish']) || !empty($_POST['fostrak_remov
 	if(!empty($_POST['fostrak_remove']) && !empty($id)){
 		try {
 			$fostrak->delStreamMedia($id);
-			return http::redirect($page_url.'?id='.$id.'#fostrak');
+			return http::redirect($page_url.'?id='.$id.'&fostrakremoveok=1#fostrak');
 		} catch (Exception $e) {
 			$core->error->add($e->getMessage());
 			$err = true;
@@ -98,41 +98,55 @@ class fostrakAdminBehaviors
 
 		$popup = (integer) !empty($_GET['popup']);
 		if($popup){
-			return;
+			return; // On affiche pas la zone en popup.
+		}
+		
+		if(!$file->media_image){
+			return; // On affiche la zone que pour les images.
 		}
 
 		$page_url = 'media_item.php';
 		$id = $file->media_id;
-
-		//$core->postmedia = new dcPostMedia($core);
-		
-		//$rs = $fostrak->getStreamMedias(array('media_id' => $id));
 		
 		$content = isset($_POST['fostrak_post_content']) ? $_POST['fostrak_post_content'] : '';
 		$ispublished = false;
 		$date_published = null;
 		
-		$post = $fostrak->getPost($id);
+		$post = $fostrak->getPost($id);		
 		if($post){
 			$content = $post->post_excerpt;
 			$ispublished = true;
 			$date_published = $post->post_dt;
 		}
 
+		// Formulaire
 		echo
 		'<form class="clear" action="'.html::escapeURL($page_url).'" method="post" enctype="multipart/form-data">'.
 		'<fieldset id="fostrak"><legend>'.__('Fostrak Photo stream').'</legend>';
 		
+		// Messages
+		if (!empty($_GET['fostrakpublishok'])) {
+			dcPage::message(__('Photo has been successfully published on Fostrak.'));
+		}
+		
+		if (!empty($_GET['fostrakremoveok'])) {
+			dcPage::message(__('Photo has been successfully unpublished from Fostrak.'));
+		}
+		
+		// Champs de saisie
 		echo 
 		'<p class="area"><label class="required" '.
 		'for="fostrak_post_content">'.__('Description:').'</label> '.
 		form::textarea('fostrak_post_content',50,2,html::escapeHTML($content)).
 		'</p>';
 
+		// Boutons
 		if($ispublished){
 			echo
 			'<p><img src="images/check-on.png" /> '.
-			__('Media published on').' '.dt::dt2str(__('%Y-%m-%d %H:%M'),$date_published).'</p>'.
+			__('Media published on').' '.dt::dt2str(__('%Y-%m-%d %H:%M'),$date_published).
+			' | '.$post->nb_comment.' commentaire(s)'.
+			' | <a href="'.$fostrak->getPublicUrl().$file->relname.'" target="blank">'.__('View on site').'</a></p>'.
 			'<p><input type="submit" name="fostrak_publish" value="'.__('Republish').'" />'.
 			'<input type="submit" name="fostrak_remove" value="'.__('Remove').'" />';
 		}else{

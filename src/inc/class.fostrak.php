@@ -38,7 +38,7 @@ class fostrak extends dcMedia
 		else
 		{
 			$strReq =
-			'SELECT M.media_id, P.post_dt, P.post_excerpt, P.post_id, M.media_dt, '.
+			'SELECT M.media_id, P.post_dt, P.post_excerpt, P.post_id, P.nb_comment, M.media_dt, '.
 			'media_title, media_file, media_path, media_private, M.user_id, '.
 			'media_creadt, media_upddt, media_meta, '.
 			'U.user_name, U.user_firstname, U.user_displayname, U.user_url ';
@@ -91,6 +91,10 @@ class fostrak extends dcMedia
 		}
 
 		$rs = $this->con->select($strReq);
+		
+		if($count_only){
+			return $rs;
+		}
 
 		$f_res = array();
 		while ($rs->fetch())
@@ -98,11 +102,12 @@ class fostrak extends dcMedia
 			$tmp = $this->fileRecord($rs);
 			$tmp->media_dtdb = $rs->post_dt;
 			$tmp->user_url = $rs->user_url;
+			$tmp->user_id = $rs->user_id;
 			$tmp->post_excerpt = $rs->post_excerpt;
 			$tmp->post_id = $rs->post_id;
+			$tmp->nb_comment = $rs->nb_comment;
 			if($tmp != null){
 				$f_res[] = new ArrayObject($tmp);
-				//$f_res[] = $tmp;
 			}
 		}
 
