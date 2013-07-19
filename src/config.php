@@ -61,6 +61,7 @@ echo
 	'</p>'.
 	'</form>';
 
+fostrakPage::helpBlock('config');
 echo $blocks[1];
 fostrakPage::close();
 

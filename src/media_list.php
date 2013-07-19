@@ -114,7 +114,7 @@ if (!$core->error->flag())
 	$media_list->display($page,$nb_per_page,'');
 }
 
-fostrakPage::helpBlock();
+fostrakPage::helpBlock('media-list');
 echo $blocks[1];
 fostrakPage::close();
 

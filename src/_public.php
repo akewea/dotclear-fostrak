@@ -21,6 +21,7 @@ if($core->blog->settings->fostrak->fostrak_enabled){
 $core->tpl->addValue('FostrakMediaRootURL',			array('fostrakTemplates','MediaRootURL'));
 $core->tpl->addValue('FostrakMediaURL',			array('fostrakTemplates','MediaURL'));
 $core->tpl->addValue('FostrakMediaContentURL',	array('fostrakTemplates','MediaContentURL'));
+$core->tpl->addValue('FostrakMediaDescription',	array('fostrakTemplates','MediaDescription'));
 $core->tpl->addValue('FostrakMediaTitle',		array('fostrakTemplates','MediaTitle'));
 $core->tpl->addValue('FostrakMediaDate',		array('fostrakTemplates','MediaDate'));
 $core->tpl->addValue('FostrakMediaAuthor',		array('fostrakTemplates','MediaAuthor'));
@@ -68,16 +69,119 @@ class fostrakPublic extends dcUrlHandlers
 			return self::p404();
 		}
 
-		//$_ctx->file_url = $rs->file_url;
-		//$_ctx->media_meta = $rs->media_meta;
-
 		$_ctx->fostrak = $rs;
+		
+		$_ctx->posts = $core->blog->getPosts(array(
+				'post_id' => $rs->post_id,
+				'post_type' => 'fostrak'
+		));
+		
+		$_ctx->comment_preview = new ArrayObject();
+		$_ctx->comment_preview['content'] = '';
+		$_ctx->comment_preview['rawcontent'] = '';
+		$_ctx->comment_preview['name'] = '';
+		$_ctx->comment_preview['mail'] = '';
+		$_ctx->comment_preview['site'] = '';
+		$_ctx->comment_preview['preview'] = false;
+		$_ctx->comment_preview['remember'] = false;
+			
+		
+		$post_id = $_ctx->posts->post_id;
+		$post_password = $_ctx->posts->post_password;
+		
+		$post_comment =
+		isset($_POST['c_name']) && isset($_POST['c_mail']) &&
+				isset($_POST['c_site']) && isset($_POST['c_content']) &&
+						$_ctx->posts->commentsActive();
+		
+		# Posting a comment
+		if ($post_comment) {
+			# Spam trap
+			if (!empty($_POST['f_mail'])) {
+				http::head(412,'Precondition Failed');
+				header('Content-Type: text/plain');
+				echo "So Long, and Thanks For All the Fish";
+				# Exits immediately the application to preserve the server.
+				exit;
+			}
+					
+			$name = $_POST['c_name'];
+			$mail = $_POST['c_mail'];
+			$site = $_POST['c_site'];
+			$content = $_POST['c_content'];
+			$preview = !empty($_POST['preview']);
+				
+			if ($content != '')
+			{
+				if ($core->blog->settings->system->wiki_comments) {
+					$core->initWikiComment();
+				} else {
+					$core->initWikiSimpleComment();
+				}
+				$content = $core->wikiTransform($content);
+				$content = $core->HTMLfilter($content);
+			}
+				
+			$_ctx->comment_preview['content'] = $content;
+			$_ctx->comment_preview['rawcontent'] = $_POST['c_content'];
+			$_ctx->comment_preview['name'] = $name;
+			$_ctx->comment_preview['mail'] = $mail;
+			$_ctx->comment_preview['site'] = $site;
+								
+			if ($preview)
+			{
+				# --BEHAVIOR-- publicBeforeCommentPreview
+				$core->callBehavior('publicBeforeCommentPreview',$_ctx->comment_preview);
+	
+				$_ctx->comment_preview['preview'] = true;
+			}
+			else
+			{
+				# Post the comment
+				$cur = $core->con->openCursor($core->prefix.'comment');
+				$cur->comment_author = $name;
+				$cur->comment_site = html::clean($site);
+				$cur->comment_email = html::clean($mail);
+				$cur->comment_content = $content;
+				$cur->post_id = $_ctx->posts->post_id;
+				$cur->comment_status = $core->blog->settings->system->comments_pub ? 1 : -1;
+				$cur->comment_ip = http::realIP();
 
-		//print_r($_ctx->media_meta);
-		//echo $file->media_title;
-		//echo $rs->media_title;
-		//return $this->fileRecord($rs);
+				$redir = $_ctx->posts->getURL();
+				$redir = $_ctx->fostrak->getURL();
+				$redir .= $core->blog->settings->system->url_scan == 'query_string' ? '&' : '?';
 
+				try
+				{
+					if (!text::isEmail($cur->comment_email)) {
+						throw new Exception(__('You must provide a valid email address.'));
+					}
+								
+					# --BEHAVIOR-- publicBeforeCommentCreate
+					$core->callBehavior('publicBeforeCommentCreate',$cur);
+					if ($cur->post_id) {
+						$comment_id = $core->blog->addComment($cur);
+	
+						# --BEHAVIOR-- publicAfterCommentCreate
+						$core->callBehavior('publicAfterCommentCreate',$cur,$comment_id);
+					}
+								
+					if ($cur->comment_status == 1) {
+						$redir_arg = 'pub=1';
+					} else {
+						$redir_arg = 'pub=0';
+					}
+				
+					header('Location: '.$redir.$redir_arg);
+				}
+				catch (Exception $e)
+				{
+					$_ctx->form_error = $e->getMessage();
+					$_ctx->form_error;
+				}
+			}
+		}
+		
 		$core->tpl->setPath($core->tpl->getPath(), dirname(__FILE__).'/default-templates');
 		self::serveDocument('photo.html');
 	}

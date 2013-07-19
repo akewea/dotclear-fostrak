@@ -21,10 +21,11 @@ class fostrakPage extends dcPage
 	
 	public static function close()
 	{		
+		global $core;
 		echo
 		'<div id="fostrak-footer"><p>'.
-		'Fostrak | '.sprintf('<a href="plugin.php?p=fostrak&amp;tab=about">%s</a>', __('About')).''.
-		'<img src="index.php?pf=fostrak/img/icon-24.png" alt="Fostrak" class="fostrak-logo" /></p></div>'."\n".
+		'<abbr title="Fostrak v'.$core->getVersion('fostrak').'">Fostrak'.
+		'<img src="index.php?pf=fostrak/img/icon-24.png" alt="Fostrak" class="fostrak-logo" /></abbr></p></div>'."\n".
 		
 		'</body></html>';
 	}
@@ -35,7 +36,6 @@ class fostrakPage extends dcPage
 		
 		$tabs['media-list'] = 	array( 'name' => __('Media Stream'), 'url' => 'plugin.php?p=fostrak&amp;tab=media-list');
 		$tabs['config'] = 		array( 'name' => __('Configuration'), 'url' => 'plugin.php?p=fostrak&amp;tab=config');
-		$tabs['about'] = 		array( 'name' => __('About'), 'url' => 'plugin.php?p=fostrak&amp;tab=about');
 		
 		return self::getTabs($tabs, $tab);
 	}
