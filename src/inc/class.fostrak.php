@@ -102,6 +102,7 @@ class fostrak extends dcMedia
 			$tmp->post_id = $rs->post_id;
 			if($tmp != null){
 				$f_res[] = new ArrayObject($tmp);
+				//$f_res[] = $tmp;
 			}
 		}
 
